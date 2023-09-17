@@ -206,7 +206,7 @@ def test_update_task_success(client, database):
     assert response_data["message"] == "Task updated successfully"
 
     # Query the database for the updated task
-    updated_task = Task.query.get(task.id)
+    updated_task = database.session.get(Task, task.id)
 
     # Assert that the task was updated with the expected attributes
     assert updated_task.title == "updated task"

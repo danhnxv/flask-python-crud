@@ -4,24 +4,23 @@ from app.models import Task
 from app import db
 import hashlib
 import uuid
+from flask import request
 
 
 class TaskResource(Resource):
     def get(self):
         try:
-            parser = reqparse.RequestParser()
-            parser.add_argument("title", type=str)
-            parser.add_argument("completed", type=str)  # Changed type to str
-            args = parser.parse_args()
+            title = request.args.get("title")
+            completed = request.args.get("completed")
 
             # Initialize the query without any filters
             query = Task.query
 
-            if "title" in args and args["title"]:
-                query = query.filter(Task.title.ilike(f"%{args['title']}%"))
+            if title is not None:
+                query = query.filter(Task.title.ilike(f"%{title}%"))
 
-            if args["completed"] is not None:
-                completed_bool = args["completed"].lower() == "true"
+            if completed is not None:
+                completed_bool = completed.lower() == "true"
                 query = query.filter_by(completed=completed_bool)
 
             # Execute the query and retrieve tasks
@@ -95,7 +94,7 @@ class TaskUpdateResource(Resource):
             args = parser.parse_args()
 
             # Check if task not found
-            existing_task = Task.query.get(task_id)
+            existing_task = db.session.get(Task, task_id)
             if not existing_task:
                 return {"message": f"Task not found"}, 404
 
@@ -127,7 +126,7 @@ class TaskUpdateResource(Resource):
 
     def delete(self, task_id):
         try:
-            existing_task = Task.query.get(task_id)
+            existing_task = db.session.get(Task, task_id)
             if not existing_task:
                 return {"message": f"Task not found"}, 404
 
